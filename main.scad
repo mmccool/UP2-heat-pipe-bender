@@ -271,30 +271,68 @@ module body () {
       }
       difference() {
         hull() {
-          translate([-clamp_w/2,-body_d,-hp_trans_h]) 
-            cube([clamp_w,2*body_d,-2*bend_r+case_h-hp_end_t]);
+          //translate([-clamp_w/2,-body_d,-hp_trans_h]) 
+          //  cube([clamp_w,2*body_d,-2*bend_r+case_h-hp_end_t]);
+          hull() {
+            translate([-clamp_w/4,-body_d,clamp_w/4-hp_trans_h])
+              rotate([-90,0,0]) 
+                cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
+            translate([ clamp_w/4,-body_d,clamp_w/4-hp_trans_h])
+              rotate([-90,0,0]) 
+                cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
+            translate([-clamp_w/4,-body_d,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t])
+              rotate([-90,0,0]) 
+                cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
+            translate([ clamp_w/4,-body_d,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t])
+              rotate([-90,0,0]) 
+                cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
+          }
           translate([-body_w/2-1,0,-hp_trans_h]) 
             cube([body_w+2,bend_r+bend_R,-2*bend_r+case_h-hp_end_t]);
         }
         hull() {
-          translate([0,bend_r,-hp_trans_h])
+          translate([-eps,bend_r,-hp_trans_h])
             rotate([0,90,0])
               translate([0,0,-clamp_w/2-1]) 
-                cylinder(r=bend_r,h=clamp_w+2,$fn=bend_sm);
-          translate([0,2.1*bend_R,-hp_trans_h])
+                cylinder(r2=bend_r,r1=bend_r+(clamp_w/2-body_w/2),
+                         h=clamp_w/2-body_w/2+1,$fn=bend_sm);
+          translate([-eps,2.1*bend_R,-hp_trans_h])
             rotate([0,90,0])
               translate([0,0,-clamp_w/2-1]) 
-                cylinder(r=bend_r,h=clamp_w+2,$fn=bend_sm);
+                cylinder(r=bend_r,h=clamp_w/2-body_w/2+1,$fn=bend_sm);
         }
-        translate([0,0,-2*bend_r+case_h-hp_end_t]) hull() {
+        translate([-eps,0,-2*bend_r+case_h-hp_end_t]) hull() {
           translate([0,bend_r,-hp_trans_h])
             rotate([0,90,0])
               translate([0,0,-clamp_w/2-1]) 
-                cylinder(r=bend_r,h=clamp_w+2,$fn=bend_sm);
-          translate([0,2.1*bend_R,-hp_trans_h])
+                cylinder(r2=bend_r,r1=bend_r+(clamp_w/2-body_w/2),
+                         h=clamp_w/2-body_w/2+1,$fn=bend_sm);
+          translate([-eps,2.1*bend_R,-hp_trans_h])
             rotate([0,90,0])
               translate([0,0,-clamp_w/2-1]) 
-                cylinder(r=bend_r,h=clamp_w+2,$fn=bend_sm);
+                cylinder(r=bend_r,h=clamp_w/2-body_w/2+1,$fn=bend_sm);
+        }
+        hull() {
+          translate([-eps,bend_r,-hp_trans_h])
+            rotate([0,90,0])
+              translate([0,0,body_w/2]) 
+                cylinder(r1=bend_r,r2=bend_r+(clamp_w/2-body_w/2),
+                         h=clamp_w/2-body_w/2+1,$fn=bend_sm);
+          translate([-eps,2.1*bend_R,-hp_trans_h])
+            rotate([0,90,0])
+              translate([0,0,body_w/2]) 
+                cylinder(r=bend_r,h=clamp_w/2-body_w/2+1,$fn=bend_sm);
+        }
+        translate([-eps,0,-2*bend_r+case_h-hp_end_t]) hull() {
+          translate([0,bend_r,-hp_trans_h])
+            rotate([0,90,0])
+              translate([0,0,body_w/2]) 
+                cylinder(r1=bend_r,r2=bend_r+(clamp_w/2-body_w/2),
+                         h=clamp_w/2-body_w/2+1,$fn=bend_sm);
+          translate([-eps,2.1*bend_R,-hp_trans_h])
+            rotate([0,90,0])
+              translate([0,0,body_w/2]) 
+                cylinder(r=bend_r,h=clamp_w/2-body_w/2+1,$fn=bend_sm);
         }
       }
     }
