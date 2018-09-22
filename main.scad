@@ -23,7 +23,7 @@ hp_sm = 4*sm;
 
 bend_m = 4; // minimum is 3
 bend_r = bend_m*hp_end_t;
-bend_e = 3;
+bend_e = 5;
 bend_R = bend_r + bend_e; 
 bend_sm = 10*sm;
 
@@ -265,6 +265,7 @@ module bearing () {
   }
 }
 
+anvil_c = 12;
 module body () {
   difference() {
     union() {
@@ -286,21 +287,21 @@ module body () {
           //translate([-clamp_w/2,-body_d,-hp_trans_h]) 
           //  cube([clamp_w,2*body_d,-2*bend_r+case_h-hp_end_t]);
           hull() {
-            translate([-clamp_w/4,-body_d,clamp_w/4-hp_trans_h])
+            translate([-clamp_w/4,-body_d,clamp_w/4-hp_trans_h+anvil_c])
               rotate([-90,0,0]) 
                 cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
-            translate([ clamp_w/4,-body_d,clamp_w/4-hp_trans_h])
+            translate([ clamp_w/4,-body_d,clamp_w/4-hp_trans_h+anvil_c])
               rotate([-90,0,0]) 
                 cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
-            translate([-clamp_w/4,-body_d,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t])
+            translate([-clamp_w/4,-body_d,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t-anvil_c])
               rotate([-90,0,0]) 
                 cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
-            translate([ clamp_w/4,-body_d,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t])
+            translate([ clamp_w/4,-body_d,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t-anvil_c])
               rotate([-90,0,0]) 
                 cylinder(r=clamp_w/4,h=2*body_d,$fn=bend_sm);
           }
-          translate([-body_w/2-1,0,-hp_trans_h]) 
-            cube([body_w+2,bend_r+bend_R,-2*bend_r+case_h-hp_end_t]);
+          translate([-body_w/2-1,0,-hp_trans_h+anvil_c]) 
+            cube([body_w+2,bend_r+bend_R,-2*bend_r+case_h-hp_end_t-2*anvil_c]);
         }
         // cutouts for benders
         hull() {
@@ -439,34 +440,52 @@ module body () {
 }
 
 arm_tol = 0.5;
-module arm (t=tol,at=arm_tol) {
+module body_roller (t=tol,at=arm_tol) {
   ah = hp_end_w-2*at;
   difference() { 
-    translate([-ah/2,-bend_r,-hp_trans_h])
-      rotate([0,90,0])
-        cylinder(r=bend_r,h=ah,$fn=bend_sm);
+    union() {
+      translate([-ah/2,-bend_r,-hp_trans_h])
+        rotate([0,90,0])
+          cylinder(r=bend_r,h=ah,$fn=bend_sm);
+      translate([-body_w/2,-bend_r,-hp_trans_h])
+        rotate([0,90,0])
+          cylinder(r=bend_r-bend_e-2*tol,h=body_w,$fn=bend_sm);
+    }
     translate([0,-bend_r,-hp_trans_h]) {
       // race
       race_roller(t=t,e=10);
-      // shaft bore (holds bearing bodies)
+      // shaft bore
       rotate([0,90,0])
-        translate([0,0,-ah/2-1]) 
-          // cylinder(r=bore_r,h=ah+2,$fn=bend_sm);
-          cylinder(r=bearing_R,h=ah+2,$fn=bend_sm);
+        translate([0,0,-body_w/2-1]) 
+          cylinder(r=bore_r,h=body_w+2,$fn=bend_sm);
+      // bearing body
+      rotate([0,90,0])
+        translate([0,0,body_w/2-bearing_h-tol])
+          cylinder(r=bearing_R+tol,h=bearing_h+1,$fn=bend_sm);
       // bearing flanges
       rotate([0,90,0])
-        translate([0,0,-ah/2-1]) {
-          cylinder(r=bearing_fr+3*tol,h=bearing_fh+tol+1,$fn=bend_sm);
-          translate([0,0,bearing_fh+1]) 
-            cylinder(r1=bearing_fr+3*tol,r2=bearing_R,h=1,$fn=bend_sm);
-        }
-      rotate([0,90,0])
-        translate([0,0,ah/2-bearing_fh]) {
-          cylinder(r=bearing_fr+3*tol,h=bearing_fh+tol+1,$fn=bend_sm);
-          translate([0,0,-1]) 
-            cylinder(r2=bearing_fr+3*tol,r1=bearing_R,h=1+tol,$fn=bend_sm);
-        }
+        translate([0,0,body_w/2-bearing_fh-tol])
+          cylinder(r=bearing_fr+3*tol,h=bearing_fh+1,$fn=bend_sm);
     }
+  }
+}
+
+module half_roller (t=tol,at=arm_tol) {
+  intersection() {
+    body_roller(t=t,at=at);
+    translate([0,-bend_r,-hp_trans_h])
+      rotate([0,90,0])
+        cylinder(r=bend_R+1,h=body_w/2+1,$fn=bend_sm);
+  }
+}
+
+module roller(t=tol,at=arm_tol) {
+  union() {
+    translate([-eps,0,0]) half_roller(t=t,at=at);
+    translate([eps,0,-hp_trans_h]) 
+      rotate([0,180,0]) 
+        translate([0,0,hp_trans_h]) 
+          half_roller(t=t,at=at);
   }
 }
 
@@ -499,8 +518,8 @@ module clamp () {
               -2*bend_r+case_h-hp_end_t-2*clamp_trunc]);
     }
     // rollers
-    arm(t=-clamp_tol,at=-tol);
-    translate([0,0,-2*bend_r+case_h-hp_end_t]) arm(t=-clamp_tol,at=-tol);
+    roller(t=-clamp_tol,at=-tol);
+    translate([0,0,-2*bend_r+case_h-hp_end_t]) roller(t=-clamp_tol,at=-tol);
     // bolt holes
     translate([-body_w/2-(clamp_w-body_w)/4,-body_d-clamp_tt-clamp_ct-1,
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2])
@@ -519,6 +538,7 @@ module clamp () {
       rotate([-90,0,0]) 
         cylinder(r=clamp_br,h=clamp_tt+2,$fn=bend_sm);
     // nut retainers
+/* 
     translate([-body_w/2-(clamp_w-body_w)/4,-body_d-clamp_tt-clamp_ct-1,
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2])
       rotate([-90,0,0]) 
@@ -535,20 +555,68 @@ module clamp () {
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2+clamp_bs/2])
       rotate([-90,0,0]) 
         rotate(-15) cylinder(r=clamp_nr,h=3+1,$fn=6);
+*/
     // heat pipe
     hp(t=tol,e=50);
   }
+}
+
+arm_len = 100;
+arm_t = 5;
+arm_r = bend_r - bend_e - 2;
+arm_h_tol = 1;
+arm_h_r1 = bearing_r + 1;
+arm_h_r2 = arm_r;
+module half_arm () {
+  difference() {
+    union() {
+      translate([body_w/2+arm_h_tol,bend_r,-hp_trans_h]) hull() {
+        rotate([0,90,0]) cylinder(r=arm_r,h=arm_t,$fn=bend_sm);
+        translate([0,-arm_len,0]) rotate([0,90,0]) cylinder(r=arm_r,h=arm_t,$fn=bend_sm);
+      }
+      translate([body_w/2,bend_r,-hp_trans_h])
+        rotate([0,90,0]) cylinder(r1=arm_h_r1,r2=arm_h_r2,h=arm_t+arm_h_tol-tol,$fn=bend_sm);
+      translate([body_w/2,-bend_r,-hp_trans_h])
+        rotate([0,90,0]) cylinder(r1=arm_h_r1,r2=arm_h_r2,h=arm_t+arm_h_tol-tol,$fn=bend_sm);
+      translate([0,bend_r-arm_len,-hp_trans_h]) 
+        rotate([0,90,0]) cylinder(r=arm_r,h=body_w/2+arm_t+arm_h_tol-tol,$fn=bend_sm);
+    }
+    translate([body_w/2-1,bend_r,-hp_trans_h])
+      rotate([0,90,0]) cylinder(r=bearing_r,h=arm_t+arm_h_tol+2,$fn=bend_sm);
+    translate([body_w/2-1,-bend_r,-hp_trans_h])
+      rotate([0,90,0]) cylinder(r=bearing_r,h=arm_t+arm_h_tol+2,$fn=bend_sm);
+    translate([-1,bend_r-arm_len,-hp_trans_h]) 
+      rotate([0,90,0]) cylinder(r=bearing_r,h=body_w/2+arm_t+arm_h_tol+2,$fn=bend_sm);
+  }
+}
+
+module arm() {
+  translate([-eps,0,0]) half_arm();
+  translate([eps,0,-hp_trans_h]) 
+      rotate([0,180,0]) 
+        translate([0,0,hp_trans_h]) 
+          half_arm();
 }
 
 module assembly () {
   color([1,0,0,1]) hp();
   body();
   clamp();
+  roller();
   arm();
 }
 
+// TEST
 //hp();
 //race();
 //bearing();
+//arm();
+
+// PRINT
+//body();
 //clamp();
+//half_roller();
+//half_arm();
+
+// VIEW
 assembly();
