@@ -185,6 +185,29 @@ module hp (t=0,e=0) {
   }
 }
 
+race_sm = 6*sm;
+module race (t=0,e=10,h=hp_trans_h) {
+  intersection() {
+    rotate([0,90,0]) 
+      rotate_extrude($fn=race_sm) {
+        translate([bend_r,0]) hull() {
+          translate([0,-hp_end_w/2+hp_end_t/2]) 
+            circle(r=hp_end_t/2+t,$fn=hp_sm);
+          translate([0, hp_end_w/2-hp_end_t/2]) 
+            circle(r=hp_end_t/2+t,$fn=hp_sm);
+          if (e != 0) translate([e,0]) {
+            translate([0,-hp_end_w/2+hp_end_t/2]) 
+              circle(r=hp_end_t/2+t,$fn=hp_sm);
+            translate([0, hp_end_w/2-hp_end_t/2]) 
+              circle(r=hp_end_t/2+t,$fn=hp_sm);
+          }
+        }
+      }
+    translate([-hp_end_w/2-1,-(bend_r+hp_end_t/2+e+1),-(bend_r+hp_end_t/2+e+1)-h]) 
+      cube([hp_end_w+2,bend_r+hp_end_t/2+e+1,bend_r+hp_end_t/2+e+1]);
+  }
+}
+
 module bearing () {
   difference() {
     union() {
@@ -244,6 +267,11 @@ module body () {
       hp(t=tol,e=-50);
       //translate([0,-50,0]) hp(t=tol);
     //}
+    // races
+    translate([0,bend_r,-hp_trans_h])
+      race(t=tol,h=0);
+    translate([0,bend_r,-hp_trans_h-2*bend_r+case_h-hp_end_t])
+      rotate([0,180,0]) race(t=tol,h=0);
     // shaft bores
     translate([0,bend_r,-hp_trans_h])
       rotate([0,90,0])
@@ -287,9 +315,10 @@ module body () {
 
 
 module assembly () {
-  color([1,0,0,1]) hp();
+  //color([1,0,0,1]) hp();
   body();
 }
 
 //bearing();
+//race();
 assembly();
