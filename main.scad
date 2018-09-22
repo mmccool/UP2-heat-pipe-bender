@@ -31,9 +31,9 @@ body_w = 12;
 body_d = 10;
 
 case_h = 99;
-clamp_sw = 10;
+clamp_sw = 8;
 clamp_w = body_w + 2*clamp_sw;
-clamp_bs = 30;
+clamp_bs = 25;
 clamp_br = m3_hole_radius;
 clamp_cr = m3_cap_radius + 2*tol;
 clamp_nr = m3_nut_radius + 2*tol;
@@ -196,23 +196,26 @@ module hp (t=0,e=0) {
 }
 
 race_sm = 6*sm;
+module race_roller(t=0,e=10) {
+rotate([0,90,0]) 
+  rotate_extrude($fn=race_sm) {
+    translate([bend_r,0]) hull() {
+      translate([0,-hp_end_w/2+hp_end_t/2]) 
+        circle(r=hp_end_t/2+t,$fn=hp_sm);
+      translate([0, hp_end_w/2-hp_end_t/2]) 
+        circle(r=hp_end_t/2+t,$fn=hp_sm);
+      if (e != 0) translate([e,0]) {
+        translate([0,-hp_end_w/2+hp_end_t/2]) 
+          circle(r=hp_end_t/2+t,$fn=hp_sm);
+        translate([0, hp_end_w/2-hp_end_t/2]) 
+          circle(r=hp_end_t/2+t,$fn=hp_sm);
+      }
+    }
+  }
+}
 module race (t=0,e=10,E=10,h=hp_trans_h,sb=race_springback) {
   intersection() {
-    rotate([0,90,0]) 
-      rotate_extrude($fn=race_sm) {
-        translate([bend_r,0]) hull() {
-          translate([0,-hp_end_w/2+hp_end_t/2]) 
-            circle(r=hp_end_t/2+t,$fn=hp_sm);
-          translate([0, hp_end_w/2-hp_end_t/2]) 
-            circle(r=hp_end_t/2+t,$fn=hp_sm);
-          if (e != 0) translate([e,0]) {
-            translate([0,-hp_end_w/2+hp_end_t/2]) 
-              circle(r=hp_end_t/2+t,$fn=hp_sm);
-            translate([0, hp_end_w/2-hp_end_t/2]) 
-              circle(r=hp_end_t/2+t,$fn=hp_sm);
-          }
-        }
-      }
+    race_roller(t=t,e=e);
     translate([-hp_end_w/2-1,-(bend_r+hp_end_t/2+e+1),-(bend_r+hp_end_t/2+e+1)-h]) 
       cube([hp_end_w+2,bend_r+hp_end_t/2+e+1,bend_r+hp_end_t/2+e+1]);
   }
@@ -435,28 +438,69 @@ module body () {
   }
 }
 
+arm_tol = 0.5;
+module arm (t=tol,at=arm_tol) {
+  ah = hp_end_w-2*at;
+  difference() { 
+    translate([-ah/2,-bend_r,-hp_trans_h])
+      rotate([0,90,0])
+        cylinder(r=bend_r,h=ah,$fn=bend_sm);
+    translate([0,-bend_r,-hp_trans_h]) {
+      // race
+      race_roller(t=t,e=10);
+      // shaft bore (holds bearing bodies)
+      rotate([0,90,0])
+        translate([0,0,-ah/2-1]) 
+          // cylinder(r=bore_r,h=ah+2,$fn=bend_sm);
+          cylinder(r=bearing_R,h=ah+2,$fn=bend_sm);
+      // bearing flanges
+      rotate([0,90,0])
+        translate([0,0,-ah/2-1]) {
+          cylinder(r=bearing_fr+3*tol,h=bearing_fh+tol+1,$fn=bend_sm);
+          translate([0,0,bearing_fh+1]) 
+            cylinder(r1=bearing_fr+3*tol,r2=bearing_R,h=1,$fn=bend_sm);
+        }
+      rotate([0,90,0])
+        translate([0,0,ah/2-bearing_fh]) {
+          cylinder(r=bearing_fr+3*tol,h=bearing_fh+tol+1,$fn=bend_sm);
+          translate([0,0,-1]) 
+            cylinder(r2=bearing_fr+3*tol,r1=bearing_R,h=1+tol,$fn=bend_sm);
+        }
+    }
+  }
+}
+
+clamp_trunc = 8;
 module clamp () {
   difference() {
     union() {
       hull() {
         // base
-        translate([-clamp_w/4,-body_d-clamp_tt-clamp_ct,clamp_w/4-hp_trans_h])
+        translate([-clamp_w/4,-body_d-clamp_tt-clamp_ct,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2+3])
           rotate([-90,0,0]) 
             cylinder(r=clamp_w/4,h=clamp_tt,$fn=bend_sm);
-        translate([ clamp_w/4,-body_d-clamp_tt-clamp_ct,clamp_w/4-hp_trans_h])
+        translate([ clamp_w/4,-body_d-clamp_tt-clamp_ct,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2+3])
           rotate([-90,0,0]) 
             cylinder(r=clamp_w/4,h=clamp_tt,$fn=bend_sm);
-        translate([-clamp_w/4,-body_d-clamp_tt-clamp_ct,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t])
+        translate([-clamp_w/4,-body_d-clamp_tt-clamp_ct,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2+clamp_bs/2-3])
           rotate([-90,0,0]) 
             cylinder(r=clamp_w/4,h=clamp_tt,$fn=bend_sm);
-        translate([ clamp_w/4,-body_d-clamp_tt-clamp_ct,-clamp_w/4-hp_trans_h-2*bend_r+case_h-hp_end_t])
+        translate([ clamp_w/4,-body_d-clamp_tt-clamp_ct,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2+clamp_bs/2-3])
           rotate([-90,0,0]) 
             cylinder(r=clamp_w/4,h=clamp_tt,$fn=bend_sm);
       }
       // insert
-      translate([-hp_mid_w/2+clamp_tol,-body_d-clamp_tt,-hp_trans_h])
-        cube([hp_mid_w-2*clamp_tol,body_d+clamp_tt,-2*bend_r+case_h-hp_end_t]);
+      translate([-hp_mid_w/2+clamp_tol,-body_d-clamp_tt-clamp_ct,clamp_trunc-hp_trans_h])
+        cube([hp_mid_w-2*clamp_tol,body_d+clamp_tt+clamp_ct,
+              -2*bend_r+case_h-hp_end_t-2*clamp_trunc]);
     }
+    // rollers
+    arm(t=-clamp_tol,at=-tol);
+    translate([0,0,-2*bend_r+case_h-hp_end_t]) arm(t=-clamp_tol,at=-tol);
     // bolt holes
     translate([-body_w/2-(clamp_w-body_w)/4,-body_d-clamp_tt-clamp_ct-1,
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2])
@@ -478,19 +522,19 @@ module clamp () {
     translate([-body_w/2-(clamp_w-body_w)/4,-body_d-clamp_tt-clamp_ct-1,
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2])
       rotate([-90,0,0]) 
-        rotate(30) cylinder(r=clamp_nr,h=3+1,$fn=6);
+        rotate(-15) cylinder(r=clamp_nr,h=3+1,$fn=6);
     translate([ body_w/2+(clamp_w-body_w)/4,-body_d-clamp_tt-clamp_ct-1,
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2])
       rotate([-90,0,0]) 
-        rotate(30) cylinder(r=clamp_nr,h=3+1,$fn=6);
+        rotate(15) cylinder(r=clamp_nr,h=3+1,$fn=6);
     translate([-body_w/2-(clamp_w-body_w)/4,-body_d-clamp_tt-clamp_ct-1,
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2+clamp_bs/2])
       rotate([-90,0,0]) 
-        rotate(30) cylinder(r=clamp_nr,h=3+1,$fn=6);
+        rotate(15) cylinder(r=clamp_nr,h=3+1,$fn=6);
     translate([ body_w/2+(clamp_w-body_w)/4,-body_d-clamp_tt-clamp_ct-1,
                -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2+clamp_bs/2])
       rotate([-90,0,0]) 
-        rotate(30) cylinder(r=clamp_nr,h=3+1,$fn=6);
+        rotate(-15) cylinder(r=clamp_nr,h=3+1,$fn=6);
     // heat pipe
     hp(t=tol,e=50);
   }
@@ -500,6 +544,7 @@ module assembly () {
   color([1,0,0,1]) hp();
   body();
   clamp();
+  arm();
 }
 
 //hp();
