@@ -19,6 +19,7 @@ hp_end2_h = 55;
 hp_trans_h = 3;
 hp_cap_h = 5;
 hp_cap_r = 3/2;
+hp_sm = 4*sm;
 
 bend_m = 4; // minimum is 3
 bend_r = bend_m*hp_end_t; 
@@ -31,7 +32,12 @@ case_h = 99;
 clamp_sw = 10;
 clamp_w = body_w + 2*clamp_sw;
 
-hp_sm = 4*sm;
+bearing_R = 8/2;
+bearing_r = 4/2;
+bearing_h = 3;
+bearing_fr = 9.2/2;
+bearing_fh = 0.55;
+bearing_sm = 10*sm;
 
 module hp (t=0) {
   // end 1 cap
@@ -95,6 +101,17 @@ module hp (t=0) {
   }
 }
 
+module bearing () {
+  difference() {
+    union() {
+      cylinder(r=bearing_R,h=bearing_h,$fn=bearing_sm);
+      cylinder(r=bearing_fr,h=bearing_fh,$fn=bearing_sm);
+    }
+    translate([0,0,-1])
+      cylinder(r=bearing_r,h=bearing_h+2,$fn=bearing_sm);
+  }
+}
+
 module body () {
   difference() {
     union() {
@@ -140,4 +157,5 @@ module assembly () {
   body();
 }
 
-assembly();
+bearing();
+//assembly();
