@@ -33,6 +33,11 @@ body_d = 10;
 case_h = 99;
 clamp_sw = 10;
 clamp_w = body_w + 2*clamp_sw;
+clamp_bs = 30;
+clamp_br = m3_hole_radius;
+clamp_cr = m3_cap_radius;
+clamp_nr = m3_nut_radius;
+clamp_bt = 3;
 
 bearing_R = 8/2;
 bearing_r = 4/2;
@@ -270,6 +275,7 @@ module body () {
           cube([body_w,bend_R,case_h]);
       }
       difference() {
+        // clamp anvil
         hull() {
           //translate([-clamp_w/2,-body_d,-hp_trans_h]) 
           //  cube([clamp_w,2*body_d,-2*bend_r+case_h-hp_end_t]);
@@ -290,6 +296,7 @@ module body () {
           translate([-body_w/2-1,0,-hp_trans_h]) 
             cube([body_w+2,bend_r+bend_R,-2*bend_r+case_h-hp_end_t]);
         }
+        // cutouts for benders
         hull() {
           translate([-eps,bend_r,-hp_trans_h])
             rotate([0,90,0])
@@ -334,12 +341,51 @@ module body () {
               translate([0,0,body_w/2]) 
                 cylinder(r=bend_r,h=clamp_w/2-body_w/2+1,$fn=bend_sm);
         }
+        // clamp bolt holes
+        translate([-body_w/2-(clamp_w-body_w)/4,-body_d-1,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2])
+          rotate([-90,0,0]) {
+            cylinder(r=clamp_br,h=2*body_d+2*bend_R,$fn=bend_sm);
+            translate([0,0,1+clamp_bt]) {
+              cylinder(r1=clamp_br,r2=clamp_cr,h=clamp_cr-clamp_br+tol,$fn=bend_sm);
+              translate([0,0,clamp_cr-clamp_br])
+                cylinder(r=clamp_cr,h=2*body_d+2*bend_R,$fn=bend_sm);
+            }
+          }
+        translate([ body_w/2+(clamp_w-body_w)/4,-body_d-1,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2-clamp_bs/2])
+          rotate([-90,0,0]) {
+            cylinder(r=clamp_br,h=2*body_d+2*bend_R,$fn=bend_sm);
+            translate([0,0,1+clamp_bt]) {
+              cylinder(r1=clamp_br,r2=clamp_cr,h=clamp_cr-clamp_br+tol,$fn=bend_sm);
+              translate([0,0,clamp_cr-clamp_br])
+                cylinder(r=clamp_cr,h=2*body_d+2*bend_R,$fn=bend_sm);
+            }
+          }
+        translate([-body_w/2-(clamp_w-body_w)/4,-body_d-1,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2+clamp_bs/2])
+          rotate([-90,0,0]) {
+            cylinder(r=clamp_br,h=2*body_d+2*bend_R,$fn=bend_sm);
+            translate([0,0,1+clamp_bt]) {
+              cylinder(r1=clamp_br,r2=clamp_cr,h=clamp_cr-clamp_br+tol,$fn=bend_sm);
+              translate([0,0,clamp_cr-clamp_br])
+                cylinder(r=clamp_cr,h=2*body_d+2*bend_R,$fn=bend_sm);
+            }
+          }
+        translate([ body_w/2+(clamp_w-body_w)/4,-body_d-1,
+                   -hp_trans_h-(2*bend_r-case_h+hp_end_t)/2+clamp_bs/2])
+          rotate([-90,0,0]) {
+            cylinder(r=clamp_br,h=2*body_d+2*bend_R,$fn=bend_sm);
+            translate([0,0,1+clamp_bt]) {
+              cylinder(r1=clamp_br,r2=clamp_cr,h=clamp_cr-clamp_br+tol,$fn=bend_sm);
+              translate([0,0,clamp_cr-clamp_br])
+                cylinder(r=clamp_cr,h=2*body_d+2*bend_R,$fn=bend_sm);
+            }
+          }
       }
     }
-    //hull() {
-      hp(t=tol,e=-50);
-      //translate([0,-50,0]) hp(t=tol);
-    //}
+    // heat pipe
+    hp(t=tol,e=-50);
     // races
     translate([0,bend_r,-hp_trans_h])
       race(t=tol,h=0,E=bend_R+2);
