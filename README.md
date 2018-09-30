@@ -6,6 +6,8 @@ for the
 to better cool an
 [AI Core mini-PCIe card](https://up-shop.org/featured/204-up-ai-core.html).
 
+![Heat Pipe Bender](bender.png)
+
 You also need a 50mm wide hand vise to compress the central part of the heat pipe down to 2.2mm so it can be jammed
 between the fins of the AI Core's heat sink, and compress the remainder of the heat pipe down to 4.3mm wide to
 give it a more appropriate bend radius.
