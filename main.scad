@@ -7,8 +7,8 @@ include <smooth_model.scad>
 include <bolt_params.scad>
 use <bolts.scad>
 
-//sm = 4*sm_base;
-sm = sm_base;
+sm = 4*sm_base;
+//sm = sm_base;
 
 hp_org_r = 6/2;
 hp_org_h = 150;
@@ -40,7 +40,7 @@ case_h = 99 + case_h_extra/2;
 clamp_sw = 10;
 clamp_w = body_w + 2*clamp_sw;
 clamp_bs = 25;
-clamp_br = m3_hole_radius;
+clamp_br = m3_hole_radius + 0.1;
 clamp_cr = m3_cap_radius + 2*tol;
 clamp_nr = m3_nut_radius + 2*tol;
 clamp_bt = 3;
