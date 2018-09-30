@@ -8,7 +8,7 @@ to better cool an
 
 ![Heat Pipe Bender](bender.png)
 
-You also need a 50mm wide hand vise to compress the central part of the heat pipe down to 2.2mm so it can be jammed
+You also need a 40mm wide hand vise to compress the central part of the heat pipe down to 2.2mm so it can be jammed
 between the fins of the AI Core's heat sink, and compress the remainder of the heat pipe down to 4.3mm wide to
 give it a more appropriate bend radius.
 This design is meant to be 3D printed but also uses four bearings (8mm OD, 4mm ID, flange optional) and a pair of 
