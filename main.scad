@@ -7,7 +7,8 @@ include <smooth_model.scad>
 include <bolt_params.scad>
 use <bolts.scad>
 
-sm = 4*sm_base;
+//sm = 4*sm_base;
+sm = sm_base;
 
 hp_mid_t = 2.18;
 hp_mid_w = 8.36;
@@ -31,7 +32,7 @@ body_w = 12;
 body_d = 10;
 
 case_h = 99;
-clamp_sw = 8;
+clamp_sw = 10;
 clamp_w = body_w + 2*clamp_sw;
 clamp_bs = 25;
 clamp_br = m3_hole_radius;
@@ -461,32 +462,60 @@ module body_roller (t=tol,at=arm_tol) {
       // bearing body
       rotate([0,90,0])
         translate([0,0,body_w/2-bearing_h-tol])
-          cylinder(r=bearing_R+tol,h=bearing_h+1,$fn=bend_sm);
+          cylinder(r=bearing_R+tol,h=bearing_h+tol,$fn=bend_sm);
+      rotate([0,90,0])
+        translate([0,0,-body_w/2-1])
+          cylinder(r=bearing_R+tol,h=bearing_h+1+tol,$fn=bend_sm);
       // bearing flanges
       rotate([0,90,0])
         translate([0,0,body_w/2-bearing_fh-tol])
           cylinder(r=bearing_fr+3*tol,h=bearing_fh+1,$fn=bend_sm);
+      rotate([0,90,0])
+        translate([0,0,-body_w/2-1])
+          cylinder(r=bearing_fr+3*tol,h=bearing_fh+1+tol,$fn=bend_sm);
     }
   }
 }
 
-module half_roller (t=tol,at=arm_tol) {
+roller_rt = 0.1;
+module roller_cutout(t=tol,at=arm_tol,rt=roller_rt,insert=true) {
+  ah = hp_end_w-2*at;
+  translate([0,-bend_r,-hp_trans_h]) {
+    union() {
+      if (insert) rotate([0,90,0])
+        translate([0,0,-2]) 
+          cylinder(r=bend_r-bend_e-ah/2+rt,
+                   h=2+1,$fn=bend_sm);
+      rotate([0,90,0]) 
+        cylinder(r1=bend_r-bend_e-ah/2+rt,
+                 r2=bend_r-bend_e+rt,
+                 h=ah/2+eps,$fn=bend_sm);
+      rotate([0,90,0])
+        translate([0,0,ah/2]) 
+          cylinder(r=bend_r-bend_e+rt,
+                   h=body_w/2-ah/2+1,$fn=bend_sm);
+    }
+  }
+}
+
+module upper_roller (t=tol,at=arm_tol) { 
+  difference() {
+    body_roller(t=t,at=at);
+    roller_cutout(t=t,at=at,rt=roller_rt);
+  }
+}
+
+module lower_roller (t=tol,at=arm_tol) {
+  ah = hp_end_w-2*at;
   intersection() {
     body_roller(t=t,at=at);
-    translate([0,-bend_r,-hp_trans_h])
-      rotate([0,90,0])
-        cylinder(r=bend_R+1,h=body_w/2+1,$fn=bend_sm);
+    roller_cutout(t=t,at=at,rt=-roller_rt,insert=false);
   }
 }
 
 module roller(t=tol,at=arm_tol) {
-  union() {
-    translate([-eps,0,0]) half_roller(t=t,at=at);
-    translate([eps,0,-hp_trans_h]) 
-      rotate([0,180,0]) 
-        translate([0,0,hp_trans_h]) 
-          half_roller(t=t,at=at);
-  }
+  upper_roller(t=t,at=at);
+  lower_roller(t=t,at=at);
 }
 
 clamp_trunc = 8;
@@ -611,11 +640,13 @@ module assembly () {
 //race();
 //bearing();
 //arm();
+//roller();
 
 // PRINT
 //body();
 //clamp();
-//half_roller();
+//upper_roller();
+//lower_roller();
 //half_arm();
 
 // VIEW
