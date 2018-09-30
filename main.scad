@@ -7,8 +7,8 @@ include <smooth_model.scad>
 include <bolt_params.scad>
 use <bolts.scad>
 
-sm = 4*sm_base;
-//sm = sm_base;
+//sm = 4*sm_base;
+sm = sm_base;
 
 hp_org_r = 6/2;
 hp_org_h = 150;
@@ -509,14 +509,14 @@ module body_roller (t=hp_tol,at=arm_tol,shaft=true) {
 }
 
 roller_rt = 0.1;
-module roller_cutout(t=hp_tol,at=arm_tol,rt=roller_rt,insert=true) {
+module roller_cutout(t=hp_tol,at=arm_tol,rt=roller_rt,insert=2) {
   ah = hp_end_w-2*at;
   translate([0,-bend_r,-hp_trans_h]) {
     union() {
-      if (insert) rotate([0,90,0])
-        translate([0,0,-2]) 
+      rotate([0,90,0])
+        translate([0,0,-insert]) 
           cylinder(r=bend_r-bend_e-ah/2+rt,
-                   h=2+1,$fn=bend_sm);
+                   h=insert+1,$fn=bend_sm);
       rotate([0,90,0]) 
         cylinder(r1=bend_r-bend_e-ah/2+rt,
                  r2=bend_r-bend_e+rt,
@@ -532,7 +532,7 @@ module roller_cutout(t=hp_tol,at=arm_tol,rt=roller_rt,insert=true) {
 module upper_roller (t=hp_tol,at=arm_tol) { 
   difference() {
     body_roller(t=t,at=at);
-    roller_cutout(t=t,at=at,rt=roller_rt);
+    roller_cutout(t=t,at=at,rt=roller_rt,insert=2);
   }
 }
 
@@ -540,7 +540,7 @@ module lower_roller (t=hp_tol,at=arm_tol) {
   ah = hp_end_w-2*at;
   intersection() {
     body_roller(t=t,at=at);
-    roller_cutout(t=t,at=at,rt=-roller_rt,insert=false);
+    roller_cutout(t=t,at=at,rt=-roller_rt,insert=0.6);
   }
 }
 
